@@ -771,23 +771,15 @@ impl<'a> WebViewBuilder<'a> {
   }
 
   /// Create a new [`WebViewBuilder`] with a web context that can be shared with multiple [`WebView`]s.
-  pub fn with_web_context(web_context: &'a mut WebContext) -> Self {
-    let attrs = WebViewAttributes {
-      context: Some(web_context),
-      ..Default::default()
-    };
-
-    Self {
-      inner: Ok(WebviewBuilderParts {
-        attrs,
-        #[allow(clippy::default_constructed_unit_structs)]
-        platform_specific: PlatformSpecificWebViewAttributes::default(),
-      }),
-    }
+  pub fn with_web_context(self, web_context: &'a mut WebContext) -> Self {
+    self.and_then(|mut b| {
+      b.attrs.context = Some(web_context);
+      Ok(b)
+    })
   }
 
   /// Create a new [`WebViewBuilder`] with the given [`WebViewAttributes`]
-  pub fn with_attributes(attrs: WebViewAttributes<'a>) -> Self {
+  pub fn new_with_attributes(attrs: WebViewAttributes<'a>) -> Self {
     Self {
       inner: Ok(WebviewBuilderParts {
         attrs,
@@ -1846,7 +1838,7 @@ impl WebView {
   /// - Panics if the provided handle was not supported or invalid.
   /// - Panics on Linux, if [`gtk::init`] was not called in this thread.
   pub fn new(window: &impl HasWindowHandle, attrs: WebViewAttributes) -> Result<Self> {
-    WebViewBuilder::with_attributes(attrs).build(window)
+    WebViewBuilder::new_with_attributes(attrs).build(window)
   }
 
   /// Create [`WebViewBuilder`] as a child window inside the provided [`HasWindowHandle`].
@@ -1872,7 +1864,7 @@ impl WebView {
   /// - Panics if the provided handle was not support or invalid.
   /// - Panics on Linux, if [`gtk::init`] was not called in this thread.
   pub fn new_as_child(parent: &impl HasWindowHandle, attrs: WebViewAttributes) -> Result<Self> {
-    WebViewBuilder::with_attributes(attrs).build_as_child(parent)
+    WebViewBuilder::new_with_attributes(attrs).build_as_child(parent)
   }
 
   /// Returns the id of this webview.
